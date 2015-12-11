@@ -44,7 +44,7 @@ define('taskBoardView', ['SHARED/jquery', 'taskManagementApp', 'SHARED/edit_inli
                 if (status > 0) {
                     $centerPanelContent.jzAjax('TaskController.removeStatus()', {
                         data: {statusId: status},
-                        method: 'POST',
+                        type: 'POST',
                         success: function(response) {
                             $centerPanelContent.html(response);
                         },
@@ -78,7 +78,7 @@ define('taskBoardView', ['SHARED/jquery', 'taskManagementApp', 'SHARED/edit_inli
                             name: statusName,
                             projectId: projectId
                         },
-                        method: 'POST',
+                        type: 'POST',
                         success: function(response) {
                             $centerPanelContent.html(response);
                         }, 
@@ -127,7 +127,7 @@ define('taskBoardView', ['SHARED/jquery', 'taskManagementApp', 'SHARED/edit_inli
                 });
                 if (data.taskTitle != undefined && data.taskTitle != '') {
                     $centerPanel.jzAjax('TaskController.createTaskInListView()', {
-                        method: 'POST',
+                        type: 'POST',
                         data: data,
                         success: function(task) {
                             var html = boardView.renderTask(task);
@@ -184,7 +184,7 @@ define('taskBoardView', ['SHARED/jquery', 'taskManagementApp', 'SHARED/edit_inli
                 };
                 $centerPanelContent.jzAjax('StatusController.updateStatus()',{
                     data: data,
-                    method: 'POST',
+                    type: 'POST',
                     success: function(response) {
                         d.resolve();
                     },
@@ -267,7 +267,7 @@ define('taskBoardView', ['SHARED/jquery', 'taskManagementApp', 'SHARED/edit_inli
                                     newStatusId: statusId,
                                     orders: listItem
                                 },
-                                method: 'POST',
+                                type: 'POST',
                                 traditional: true,
                                 success: function(response) {
 
@@ -285,7 +285,7 @@ define('taskBoardView', ['SHARED/jquery', 'taskManagementApp', 'SHARED/edit_inli
                                     name: 'status',
                                     value: statusId
                                 },
-                                method: 'POST',
+                                type: 'POST',
                                 traditional: true,
                                 success: function(response) {
 

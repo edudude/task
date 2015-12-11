@@ -186,7 +186,7 @@ define('ta_edit_inline',
             data.taskId = currentTaskId;
             $('#taskDetailContainer').jzAjax('TaskController.saveTaskInfo()',{
                 data: data,
-                method: 'POST',
+                type: 'POST',
                 traditional: true,
                 success: function(response) {
                     d.resolve(response);
@@ -429,7 +429,7 @@ define('ta_edit_inline',
             var options = selectize.options;
             $rightPanel.jzAjax('TaskController.saveTaskInfo()',{
                 data: {taskId: taskId, name: name, value: val},
-                method: 'POST',
+                type: 'POST',
                 traditional: true,
                 success: function(response) {
                     var $assignee = $rightPanel.find('input[name="assignee"]');
@@ -745,7 +745,7 @@ define('ta_edit_inline',
                         $editable.off('click', 'a.removeProject').on('click', 'a.removeProject', function(e) {
                             $editable.jzAjax('TaskController.saveTaskInfo()', {
                                 data: {taskId: taskId, name: 'project', value: 0},
-                                method: 'POST',
+                                type: 'POST',
                                 success: function(e) {
                                     $editable.find('li').html('No Project').removeClass('active').addClass('muted');
                                     $editable.editable('setValue', 0);

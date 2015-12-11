@@ -185,7 +185,7 @@ define('project-menu', ['SHARED/jquery', 'ta_edit_inline', 'SHARED/task_ck_edito
       data.projectId = params.pk;
       $rightPanel.jzAjax('ProjectController.saveProjectInfo()',{
           data: data,
-          method: 'POST',
+          type: 'POST',
           traditional: true,
           success: function(response) {
               d.resolve();
@@ -278,7 +278,7 @@ define('project-menu', ['SHARED/jquery', 'ta_edit_inline', 'SHARED/task_ck_edito
             }
             permissionTimeout = setTimeout(function() {
                 $input.jzAjax('ProjectController.findPermission()', {
-                    method: 'POST',
+                    type: 'POST',
                     data: {keyword: currentVal},
                     success: function(response) {
                         $autoCompleted.html(response);
@@ -562,7 +562,7 @@ define('project-menu', ['SHARED/jquery', 'ta_edit_inline', 'SHARED/task_ck_edito
         });
         $modalPlace.jzAjax('ProjectController.savePermission()', {
                 data: {'id': pid, 'permissions': permissions, 'type': type},
-                method: 'POST',
+                type: 'POST',
                 traditional: true,
                 success: function(response) {
                     $modalPlace.html(response);

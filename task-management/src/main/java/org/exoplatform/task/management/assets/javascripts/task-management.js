@@ -351,7 +351,7 @@ $(document).ready(function() {
         }
 
         $form.jzAjax('TaskController.createTask()', {
-            method: 'POST',
+            type: 'POST',
             data: {projectId: projectId, labelId: labelId, taskInput: taskInput, filter: filter},
             success: function(task) {
                 var $taskContainer = $centerPanelContent.find('.newTaskContainer ul');
