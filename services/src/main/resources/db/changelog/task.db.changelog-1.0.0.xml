@@ -9,19 +9,22 @@
   <property name="autoIncrement" value="true" dbms="mysql,mssql,h2,sybase,db2,hsqldb"/>
   <property name="autoIncrement" value="false" dbms="oracle,postgresql"/>
 
+  <property name="nvarchar" value="NVARCHAR" dbms="oracle,postgresql,mssql,h2,sybase,db2,hsqldb"/>
+  <property name="nvarchar" value="VARCHAR" dbms="mysql"/>
+
   <!-- Definition of TASK_PROJECTS table -->
   <changeSet author="task" id="1.0.0-1">
     <createTable tableName="TASK_PROJECTS">
       <column name="PROJECT_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
         <constraints nullable="false" primaryKey="true" primaryKeyName="PK_TASK_PROJECTS" />
       </column>
-      <column name="NAME" type="NVARCHAR(50)">
+      <column name="NAME" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
-      <column name="DESCRIPTION" type="NVARCHAR(2000)">
+      <column name="DESCRIPTION" type="${nvarchar}(2000)">
         <constraints nullable="true"/>
       </column>
-      <column name="COLOR" type="NVARCHAR(100)">
+      <column name="COLOR" type="${nvarchar}(100)">
         <constraints nullable="true"/>
       </column>
       <column name="CALENDAR_INTEGRATED" type="BIT" defaultValue="0">
@@ -35,7 +38,7 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
   <changeSet author="task" id="1.0.0-2" dbms="oracle,postgresql">
@@ -48,12 +51,12 @@
       <column name="PROJECT_ID" type="BIGINT">
         <constraints foreignKeyName="FK_TASK_PRJ_MGR_TASK_PRJ_01" references="TASK_PROJECTS(PROJECT_ID)" nullable="false"/>
       </column>
-      <column name="MANAGER" type="NVARCHAR(50)">
+      <column name="MANAGER" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
 
@@ -63,12 +66,12 @@
       <column name="PROJECT_ID" type="BIGINT">
         <constraints foreignKeyName="FK_TASK_PRJ_PTOR_TASK_PRJ_01" references="TASK_PROJECTS(PROJECT_ID)" nullable="false"/>
       </column>
-      <column name="PARTICIPATOR" type="NVARCHAR(50)">
+      <column name="PARTICIPATOR" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
 
@@ -78,7 +81,7 @@
       <column name="STATUS_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
         <constraints nullable="false" primaryKey="true" primaryKeyName="PK_TASK_STATUS"/>
       </column>
-      <column name="NAME" type="NVARCHAR(50)">
+      <column name="NAME" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
       <column name="RANK" type="INTEGER">
@@ -89,7 +92,7 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
   <changeSet author="task" id="1.0.0-6" dbms="oracle,postgresql">
@@ -102,25 +105,25 @@
       <column name="TASK_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
         <constraints primaryKey="true" primaryKeyName="PK_TASK_TASKS" nullable="false"/>
       </column>
-      <column name="TITLE" type="NVARCHAR(250)">
+      <column name="TITLE" type="${nvarchar}(250)">
         <constraints nullable="false"/>
       </column>
-      <column name="DESCRIPTION" type="NVARCHAR(2000)">
+      <column name="DESCRIPTION" type="${nvarchar}(2000)">
         <constraints nullable="true"/>
       </column>
       <column name="PRIORITY" type="INTEGER" defaultValue="0">
         <constraints nullable="true"/>
       </column>
-      <column name="CONTEXT" type="NVARCHAR(255)">
+      <column name="CONTEXT" type="${nvarchar}(255)">
         <constraints nullable="true"/>
       </column>
-      <column name="ASSIGNEE" type="NVARCHAR(50)">
+      <column name="ASSIGNEE" type="${nvarchar}(50)">
         <constraints nullable="true"/>
       </column>
       <column name="STATUS_ID" type="BIGINT">
         <constraints foreignKeyName="FK_TASK_TASKS_TASK_STATUS_01" references="TASK_STATUS(STATUS_ID)" nullable="true"/>
       </column>
-      <column name="CREATED_BY" type="NVARCHAR(50)">
+      <column name="CREATED_BY" type="${nvarchar}(50)">
         <constraints nullable="true"/>
       </column>
       <column name="CREATED_TIME" type="TIMESTAMP">
@@ -143,7 +146,7 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
   <changeSet author="task" id="1.0.0-8" dbms="oracle,postgresql">
@@ -156,12 +159,12 @@
       <column name="TASK_ID" type="BIGINT">
         <constraints foreignKeyName="FK_TK_TK_COWKR_TK_TK_01" references="TASK_TASKS(TASK_ID)" nullable="false"/>
       </column>
-      <column name="COWORKER" type="NVARCHAR(50)">
+      <column name="COWORKER" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
 
@@ -171,12 +174,12 @@
       <column name="TASK_ID" type="BIGINT">
         <constraints foreignKeyName="FK_TASK_TAGS_TASK_TASKS_01" references="TASK_TASKS(TASK_ID)" nullable="false"/>
       </column>
-      <column name="TAG" type="NVARCHAR(50)">
+      <column name="TAG" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
 
@@ -186,10 +189,10 @@
       <column name="COMMENT_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
         <constraints primaryKey="true" primaryKeyName="PK_TASK_COMMENTS" nullable="false"/>
       </column>
-      <column name="AUTHOR" type="NVARCHAR(100)">
+      <column name="AUTHOR" type="${nvarchar}(100)">
         <constraints nullable="false"/>
       </column>
-      <column name="CMT" type="NVARCHAR(2000)">
+      <column name="CMT" type="${nvarchar}(2000)">
         <constraints nullable="false"/>
       </column>
       <column name="CREATED_TIME" type="TIMESTAMP">
@@ -200,14 +203,14 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
 
   <!-- Definition of TASK_USER_SETTINGS table -->
   <changeSet author="task" id="1.0.0-12">
     <createTable tableName="TASK_USER_SETTINGS">
-      <column name="USERNAME" type="NVARCHAR(50)">
+      <column name="USERNAME" type="${nvarchar}(50)">
         <constraints primaryKey="true" primaryKeyName="PK_TASK_USER_SETTINGS" nullable="false"/>
       </column>
       <column name="SHOW_HIDDEN_PROJECT" type="BIT" defaultValue="0">
@@ -218,13 +221,13 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
   <!-- Definition of TASK_HIDDEN_PROJECTS table -->
   <changeSet author="task" id="1.0.0-13">
     <createTable tableName="TASK_HIDDEN_PROJECTS">
-      <column name="USERNAME" type="NVARCHAR(50)">
+      <column name="USERNAME" type="${nvarchar}(50)">
         <constraints foreignKeyName="FK_TK_HID_PRJ_TK_USR_SET_01" references="TASK_USER_SETTINGS(USERNAME)" nullable="false"/>
       </column>
       <column name="PROJECT_ID" type="BIGINT">
@@ -232,7 +235,7 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
   
@@ -245,20 +248,20 @@
       <column name="TASK_ID" type="BIGINT">
         <constraints nullable="false" foreignKeyName="FK_LOG_TASK" references="TASK_TASKS(TASK_ID)"/>
       </column>
-      <column name="AUTHOR" type="NVARCHAR(100)">
+      <column name="AUTHOR" type="${nvarchar}(100)">
         <constraints nullable="false"/>
       </column>
-      <column name="ACTION_NAME" type="NVARCHAR(2000)">
+      <column name="ACTION_NAME" type="${nvarchar}(2000)">
         <constraints nullable="false"/>
       </column>
-      <column name="TARGET" type="NVARCHAR(100)">
+      <column name="TARGET" type="${nvarchar}(100)">
       </column>
       <column name="CREATED_TIME" type="BIGINT">
         <constraints nullable="false"/>
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
 
@@ -270,15 +273,15 @@
     </createIndex>
     <createIndex indexName="IDX_TASK_PRJ_MGR_01"
                  tableName="TASK_PROJECT_MANAGERS">
-      <column name="MANAGER" type="NVARCHAR(50)"/>
+      <column name="MANAGER" type="${nvarchar}(50)"/>
     </createIndex>
     <createIndex indexName="IDX_TASK_PRJ_PTOR_01"
                  tableName="TASK_PROJECT_PARTICIPATORS">
-      <column name="PARTICIPATOR" type="NVARCHAR(50)"/>
+      <column name="PARTICIPATOR" type="${nvarchar}(50)"/>
     </createIndex>
     <createIndex indexName="IDX_TASK_TASK_COWORKERS_01"
                  tableName="TASK_TASK_COWORKERS">
-      <column name="COWORKER" type="NVARCHAR(50)"/>
+      <column name="COWORKER" type="${nvarchar}(50)"/>
     </createIndex>
   </changeSet>
 
@@ -322,7 +325,7 @@
   <!-- Definition column ACTIVITY_ID for TASK_TASKS table -->
   <changeSet author="task" id="1.0.0-18">
     <addColumn tableName="TASK_TASKS">
-      <column name="ACTIVITY_ID" type="NVARCHAR(50)" defaultValue="">
+      <column name="ACTIVITY_ID" type="${nvarchar}(50)" defaultValue="">
         <constraints nullable="true"/>
       </column>
     </addColumn>
@@ -334,13 +337,13 @@
       <column name="LABEL_ID" type="BIGINT" autoIncrement="${autoIncrement}" startWith="1">
         <constraints nullable="false" primaryKey="true" primaryKeyName="PK_TASK_LABELS"/>
       </column>
-      <column name="NAME" type="NVARCHAR(50)">
+      <column name="NAME" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
-      <column name="USERNAME" type="NVARCHAR(50)">
+      <column name="USERNAME" type="${nvarchar}(50)">
         <constraints nullable="false"/>
       </column>
-      <column name="COLOR" type="NVARCHAR(100)">
+      <column name="COLOR" type="${nvarchar}(100)">
         <constraints nullable="true"/>
       </column>
       <column name="HIDDEN" type="BIT" defaultValue="0">
@@ -351,7 +354,7 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>
   </changeSet>
   
@@ -366,7 +369,7 @@
       </column>
     </createTable>
     <modifySql dbms="mysql">
-      <append value=" ENGINE=INNODB CHARSET=UTF8 COLLATE utf8_general_ci"/>
+      <append value=" ENGINE=INNODB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"/>
     </modifySql>    
   </changeSet>
 
@@ -384,17 +387,17 @@
   <changeSet author="task" id="1.0.0-23">
     <createIndex indexName="IDX_TASK_LABELS_01"
                  tableName="TASK_LABELS">
-      <column name="USERNAME" type="NVARCHAR(50)"/>
+      <column name="USERNAME" type="${nvarchar}(50)"/>
     </createIndex>
   </changeSet>
   <changeSet author="task" id="1.0.0-24">
     <createIndex indexName="IDX_TASK_TASKS_02"
                  tableName="TASK_TASKS">
-      <column name="ASSIGNEE" type="NVARCHAR(50)"/>
+      <column name="ASSIGNEE" type="${nvarchar}(50)"/>
     </createIndex>
     <createIndex indexName="IDX_TASK_TASKS_03"
                  tableName="TASK_TASKS">
-      <column name="CREATED_BY" type="NVARCHAR(50)"/>
+      <column name="CREATED_BY" type="${nvarchar}(50)"/>
     </createIndex>
   </changeSet>
 
