@@ -403,4 +403,19 @@
             constraintName="UQ_TASK_LABEL_TASK"
             tableName="TASK_LABEL_TASK"/>
   </changeSet>
+
+  <changeSet id="1.0.0-26" author="task">
+    <dropTable tableName="TASK_TAGS" />
+    <rollback>
+      <!-- This rollback is need because in unit test we will revert all changes after each test case-->
+      <createTable tableName="TASK_TAGS">
+        <column name="TASK_ID" type="BIGINT">
+          <constraints foreignKeyName="FK_TASK_TAGS_TASK_TASKS_01" references="TASK_TASKS(TASK_ID)" nullable="false"/>
+        </column>
+        <column name="TAG" type="NVARCHAR(50)">
+          <constraints nullable="false"/>
+        </column>
+      </createTable>
+    </rollback>
+  </changeSet>
 </databaseChangeLog>
