@@ -673,20 +673,6 @@ define('ta_edit_inline',
                         $this.parent().find('i').attr('class', 'uiIconColorPriority' + newValue);
                     }
                 }
-                if (fieldName == 'labels') {
-                    editOptions.success = function (response, newValue) {
-                        var isEmpty = newValue.length == 0 || newValue[0] == '';
-                        var $i = $this.parent().find('.icon-hash');
-                        if (isEmpty) {
-                            $i.removeClass('hide');
-                        } else {
-                            $i.addClass('hide');
-                        }
-                        if (fieldName == 'labels') {
-                          $('.rightPanelContent ').trigger('saveLabel');
-                        }
-                    }
-                }
                 if (fieldName == 'title') {
                 	editOptions.emptyclass = '';
                 }
@@ -707,6 +693,19 @@ define('ta_edit_inline',
                     $.each(opts, function(index, val) {
                         allLabels[val.id] = val;
                     });
+
+                    editOptions.success = function (response, newValue) {
+                        var isEmpty = newValue.length == 0 || newValue[0] == '';
+                        var $i = $this.parent().find('.icon-hash');
+                        if (isEmpty) {
+                            $i.removeClass('hide');
+                        } else {
+                            $i.addClass('hide');
+                        }
+                        if (fieldName == 'labels') {
+                            $('.rightPanelContent ').trigger('saveLabel');
+                        }
+                    };
 
                     editOptions.emptytext = locale.labels;
                     editOptions.selectize = {
