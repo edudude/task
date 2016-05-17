@@ -19,8 +19,6 @@
 
 package org.exoplatform.task.util;
 
-import java.util.StringTokenizer;
-
 import org.exoplatform.commons.utils.HTMLEntityEncoder;
 import org.exoplatform.task.model.User;
 import org.exoplatform.task.service.UserService;
@@ -30,19 +28,21 @@ import org.exoplatform.task.service.UserService;
  */
 public final class CommentUtil {
 
+  // regex allowing to return tokens and delimiters
+  public static final String WITH_DELIMITER = "((?<=[%1$s])|(?=[%1$s]))";
+
   private CommentUtil() {
   }
 
-  public static String formatMention(String text, UserService userService) {
+  public static String formatComment(String text, UserService userService) {
     if(text == null || text.isEmpty()) {
       return text;
     }
     HTMLEntityEncoder encoder = HTMLEntityEncoder.getInstance();
     StringBuilder sb = new StringBuilder();
 
-    StringTokenizer tokenizer = new StringTokenizer(text);
-    while(tokenizer.hasMoreElements()) {
-      String next = (String)tokenizer.nextElement();
+    String[] textParts = text.split(String.format(WITH_DELIMITER, "\\s\\t\\n\\r\\f"));
+    for (String next : textParts) {
       if(next.length() == 0) {
         continue;
       } else if(next.charAt(0) == '@') {
@@ -53,11 +53,12 @@ public final class CommentUtil {
         } else {
           next = encoder.encodeHTML(next);
         }
+      } else if(next.equals("\n") || next.equals("\n\r")) {
+        next = "<br>";
       } else {
         next = encoder.encodeHTML(next);
       }
       sb.append(next);
-      sb.append(' ');
     }
 
     return sb.toString();

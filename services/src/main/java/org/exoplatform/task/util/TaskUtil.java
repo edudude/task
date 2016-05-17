@@ -233,13 +233,13 @@ public final class TaskUtil {
     List<CommentModel> comments = new ArrayList<CommentModel>(cmts.size());
     for(Comment c : cmts) {
       org.exoplatform.task.model.User u = userService.loadUser(c.getAuthor());
-      comments.add(new CommentModel(c, u, CommentUtil.formatMention(c.getComment(), userService)));
+      comments.add(new CommentModel(c, u, CommentUtil.formatComment(c.getComment(), userService)));
     }
     taskModel.setComments(comments);
 
     org.exoplatform.task.model.User currentUser = userService.loadUser(username);
     taskModel.setCurrentUser(currentUser);
-    
+
     EntityEncoder encoder = HTMLEntityEncoder.getInstance();
     String breadcumbs = "<li class=\"muted\" >" + bundle.getString("label.noProject") + "</li>";
     if (task.getStatus() != null) {
