@@ -70,39 +70,47 @@
     // Disable button while server updating
     setActionButtonEnabled('.create-task-button', false);
 
-    // Call server
-    $.ajax({
-      url : createTaskUrl,
-      data : {
-        "extension_action" : "createTask",
-        "username" : selectedUsers,
-        "dueDate" : dueDate,
-        "text" : task,
-        "roomName" : roomName,
-        "isSpace" : isSpace,
-        "isTeam": isTeam
-      },
-      success : function(response) {
+    chatApplication.getUsers(targetUser, function (jsonData) {
+      var participants = [];
+      $.each(jsonData.users, function(idx, elem) {
+        participants.push(elem.name);
+      });
 
-        var options = {
-          type : "type-task",
-          username : selectedUsers,
-          dueDate : dueDate,
-          task : task
-        };
-        var msg = task;
+      // Call server
+      $.ajax({
+        url : createTaskUrl,
+        data : {
+          "extension_action" : "createTask",
+          "username" : selectedUsers,
+          "dueDate" : dueDate,
+          "text" : task,
+          "roomName" : roomName,
+          "isSpace" : isSpace,
+          "isTeam": isTeam,
+          "participants": participants.join(",")
+        },
+        success : function(response) {
 
-        chatApplication.chatRoom.sendMessage(msg,
+          var options = {
+            type : "type-task",
+            username : selectedUsers,
+            dueDate : dueDate,
+            task : task
+          };
+          var msg = task;
+
+          chatApplication.chatRoom.sendMessage(msg,
             options, "true");
-        setActionButtonEnabled('.create-task-button',
+          setActionButtonEnabled('.create-task-button',
             true);
 
-      },
-      error : function(xhr, status, error) {
-        console.log("error");
-        setActionButtonEnabled('.create-task-button',
+        },
+        error : function(xhr, status, error) {
+          console.log("error");
+          setActionButtonEnabled('.create-task-button',
             true);
-      }
+        }
+      });
     });
   });
   
@@ -160,7 +168,7 @@
               console.log("fail to create inline task: " + error);
             }
           });       
-        });     
+        });
       }
     }
   });
