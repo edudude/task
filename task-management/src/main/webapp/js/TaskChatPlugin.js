@@ -113,8 +113,67 @@
       });
     });
   });
-  
-  chatApplication.initMention();
+
+  // Initialize suggester component.
+  (function() {
+    window.require(["SHARED/jquery", "SHARED/suggester"], function($) {
+      var $msg = $('#msg');
+      $msg.suggester({
+        type : "mix",
+        sourceProviders : ['exo:chat'],
+        showAtCaret: true,
+        renderMenuItem: function(item) {
+          return '<img onerror="this.src=\'/chat/img/Avatar.gif;\'" src="/rest/chat/api/1.0/user/getAvatarURL/'+item.uid+'" width="20px" height="20px"> ' +
+            item.value + ' <span style="float: right" class="chat-status-task chat-status-'+item.status+'"></span>';
+        },
+        renderItem: '@${uid}',
+        callbacks: {
+          matcher: function(flag, subtext) {
+            var pattern = /\s*\+\+\S+/;
+            if (pattern.test(subtext)) {
+              var pos = subtext.lastIndexOf(flag);
+              if (pos > -1) {
+                return subtext.substr(pos + 1);
+              }
+            }
+            return null;
+          }
+        },
+      });
+      $msg.suggester('addProvider', 'exo:chat', function(query, callback) {
+        var _this = this;
+        $.ajax({
+          url: chatApplication.jzUsers,
+          data: {"filter": query,
+            "user": chatApplication.username,
+            "token": chatApplication.token,
+            "dbName": chatApplication.dbName
+          },
+          dataType: "json",
+          success: function(data) {
+            var users = [];
+            $.each(data.users, function(idx, user) {
+              users.push({
+                "uid": user.name,
+                "value": user.fullname,
+                "status": user.status
+              });
+            });
+            callback.call(_this, users);
+          }
+        });
+      });
+
+      $msg.on('shown.atwho', function(event, data) {
+        chatApplication.isMentioning = true;
+      });
+      $msg.on('hidden.atwho', function(event, data) {
+        setTimeout(function() {
+          chatApplication.isMentioning = false;
+        }, 100);
+      });
+    });
+  })();
 
   // TODO: Need to make sure this is executed before ChatRoom is initialized.
   // Processing the Task creation shortcut inline.
