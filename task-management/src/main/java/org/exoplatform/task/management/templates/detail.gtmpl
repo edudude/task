@@ -12,10 +12,13 @@
 	import org.exoplatform.task.domain.Priority;
 	import org.exoplatform.task.util.DateUtil;
 	import org.exoplatform.commons.utils.HTMLEntityEncoder;
+       import org.exoplatform.commons.utils.HTMLSanitizer;
+       import org.apache.commons.lang.StringEscapeUtils;
 
 	def encoder = HTMLEntityEncoder.getInstance();
 
 	def task = taskModel.getTask();
+       def taskDescription =  HTMLSanitizer.sanitize(StringEscapeUtils.unescapeHtml(task.description));
 	def breadcumbs = taskModel.getBreadcumbs();
 	def assignee = taskModel.getAssignee();
     def hasAssignee = (assignee != null && assignee.getUsername() != "guest" && assignee.getUsername() != null);
@@ -181,7 +184,7 @@
 <div class="taskDescription">
     <div data-type="ckeditor" data-name="description" class="${editableClasses}"
          data-original-title="&{tooltip.clickToEdit}" rel="tooltip">
-        ${task.description == null ? "" : task.description}
+        ${taskDescription == null ? "" : taskDescription}
     </div>
 </div>
 <div class="inforBar2 clearfix">   
@@ -379,7 +382,7 @@
     </div>
     <div class="row-fluid task-info-row task-description">
         <a class="editable" href="#" data-name="description" data-type="textarea">
-        ${task.description != null ? task.description : ''}
+        ${taskDescription != null ? taskDescription : ''}
         </a>
     </div>
     <ul class="nav nav-tabs taskTabs" role="tablist">
