@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
 
     if (ms.size() > 0) {
       try {
-        final ListAccess<org.exoplatform.services.organization.User> orgUsers = orgService.getUserHandler().findUsersByQuery(query, UserStatus.ANY);
+        final ListAccess<org.exoplatform.services.organization.User> orgUsers = orgService.getUserHandler().findUsersByQuery(query, UserStatus.ENABLED);
         return new ListAccess<User>() {
           @Override
           public User[] load(int start, int size) throws Exception, IllegalArgumentException {
