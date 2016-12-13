@@ -21,8 +21,7 @@ package org.exoplatform.task.management.controller;
 
 import javax.inject.Inject;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import juzu.MimeType;
 import juzu.Resource;
@@ -34,13 +33,12 @@ import org.exoplatform.commons.juzu.ajax.Ajax;
 import org.exoplatform.commons.utils.HTMLEntityEncoder;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.services.organization.OrganizationService;
-import org.exoplatform.services.organization.Query;
-import org.exoplatform.services.organization.User;
-import org.exoplatform.services.organization.UserHandler;
 import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.services.security.Identity;
 import org.exoplatform.task.domain.Label;
 import org.exoplatform.task.domain.Project;
+import org.exoplatform.task.domain.Task;
+import org.exoplatform.task.model.User;
 import org.exoplatform.task.exception.EntityNotFoundException;
 import org.exoplatform.task.exception.NotAllowedOperationOnEntityException;
 import org.exoplatform.task.exception.UnAuthorizedOperationException;
@@ -66,13 +64,80 @@ public class UserController extends AbstractController {
     @Inject
     private TaskService taskService;
 
+
+  private List<User> loadUserFromList(ListAccess<User> list, int limit, Map<String, User> loadedUsers) {
+    int size;
+    List<User> result = new LinkedList<>();
+    if (list == null || (size = ListUtil.getSize(list)) == 0) {
+      return result;
+    }
+
+    int start = 0;
+    while(result.size() < limit && start < size) {
+      for (User u : ListUtil.load(list, start, limit)) {
+        if (loadedUsers == null || !loadedUsers.containsKey(u.getUsername())) {
+          result.add(u);
+        }
+      }
+      start += limit;
+    }
+    return result;
+  }
+
+  private Collection<User> searchUserByTask(Long taskId, String query, int limit) throws EntityNotFoundException {
+    // In this method we only search by task
+    if (taskId == null || taskId <= 0) {
+      return Collections.emptyList();
+    }
+
+    Task task = taskService.getTask(taskId);
+
+    if (task.getStatus() == null) {
+      // Personal task: we only return creator if match with query
+      return loadUserFromList(userService.findByMembership(Arrays.asList(task.getCreatedBy()), query), 1, null);
+
+    } else {
+      //
+      Project project = task.getStatus().getProject();
+      Map<String, User> map = new LinkedHashMap<>();
+
+      // We search in participants first
+      ListAccess<User> participants = userService.findByMembership(project.getParticipator(), query);
+      try {
+        int size = participants.getSize();
+        if (size < limit)
+          for (User u : loadUserFromList(participants, size, null)) {
+            map.put(u.getUsername(), u);
+          }
+        // If not enough, continue search in project's manager
+        if (map.size() < limit) {
+          ListAccess<User> managers = userService.findByMembership(project.getManager(), query);
+          for (User u : loadUserFromList(managers, limit - map.size(), map)) {
+            map.put(u.getUsername(), u);
+          }
+        }
+      } catch (Exception e) {
+        LOG.error("Exception when trying to retrieve the size of the participants list");
+      }
+      return map.values();
+    }
+  }
+
+  /**
+   * This method is used to find user in assignement
+   * @param query
+   * @return
+   * @throws Exception
+   */
+
+
     @Resource
     @Ajax
     @MimeType.JSON
-    public Response findUser(String query) throws Exception { // NOSONAR
-      ListAccess<org.exoplatform.task.model.User> list = userService.findUserByName(query);
+  public Response findUser(Long taskId, String query) throws EntityNotFoundException, JSONException {
+      Collection<User> users = searchUserByTask(taskId, query, UserUtil.SEARCH_LIMIT);
       JSONArray array = new JSONArray();
-      for(org.exoplatform.task.model.User u : list.load(0, UserUtil.SEARCH_LIMIT)) {
+      for(User u : users) {
         JSONObject json = new JSONObject();
         json.put("id", u.getUsername());
         json.put("text", u.getDisplayName());
@@ -85,11 +150,11 @@ public class UserController extends AbstractController {
     @Resource
     @Ajax
     @MimeType.JSON
-    public Response findUsersToMention(String query) throws Exception { // NOSONAR
-      ListAccess<org.exoplatform.task.model.User> list = userService.findUserByName(query);
+  public Response findUsersToMention(Long taskId, String query) throws EntityNotFoundException, JSONException {
+      Collection<User> users = searchUserByTask(taskId, query, UserUtil.SEARCH_LIMIT);
       EntityEncoder encoder = HTMLEntityEncoder.getInstance();
       JSONArray array = new JSONArray();
-      for(org.exoplatform.task.model.User u : list.load(0, UserUtil.SEARCH_LIMIT)) {
+      for(User u : users) {
         JSONObject json = new JSONObject();
         json.put("id", "@" + u.getUsername());
         json.put("name", u.getDisplayName());

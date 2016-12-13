@@ -26,6 +26,7 @@ import org.exoplatform.task.exception.EntityNotFoundException;
 import org.exoplatform.task.exception.NotAllowedOperationOnEntityException;
 import org.exoplatform.task.model.User;
 
+import java.util.Collection;
 import java.util.TimeZone;
 
 /**
@@ -42,6 +43,8 @@ public interface UserService {
    * @return
    */
   ListAccess<User> findUserByName(String keyword);
+
+  ListAccess<User> findByMembership(Collection<String> memberships, String keyword);
 
   UserSetting getUserSetting(String username);
 

@@ -459,9 +459,10 @@ define('ta_edit_inline',
             },
             load: function(query, callback) {
                 if (!query.length) return callback();
+                var taskId = $rightPanel.find('[data-taskid]').data('taskid');
                 $.ajax({
                     url: $rightPanel.jzURL('UserController.findUser'),
-                    data: {query: query},
+                    data: {query: query, taskId: taskId},
                     type: 'GET',
                     error: function() {
                         callback();

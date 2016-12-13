@@ -42,9 +42,13 @@ import org.exoplatform.task.exception.EntityNotFoundException;
 import org.exoplatform.task.exception.NotAllowedOperationOnEntityException;
 import org.exoplatform.task.model.User;
 import org.exoplatform.task.service.UserService;
+import org.exoplatform.commons.utils.ListAccessImpl;
+import org.exoplatform.services.organization.Query;
+import org.exoplatform.services.organization.UserStatus;
+import org.exoplatform.services.organization.Membership;
+import org.exoplatform.services.organization.impl.MembershipImpl;
 
-import java.util.ArrayList;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author <a href="mailto:tuyennt@exoplatform.com">Tuyen Nguyen The</a>.
@@ -138,6 +142,101 @@ public class UserServiceImpl implements UserService {
 
     return u;
   }
+
+  @Override
+  public ListAccess<User> findByMembership(Collection<String> memberships, String keyword) {
+    if (memberships == null || memberships.isEmpty() || keyword == null || keyword.isEmpty()) {
+      return EMPTY;
+    }
+
+    final List<User> users = new ArrayList<>();
+    Query query = new Query();
+    String firstName = keyword;
+    if (firstName.charAt(0) != '*') {
+      firstName = '*' + firstName;
+    }
+    if (firstName.charAt(firstName.length() - 1) != '*') {
+      firstName = firstName + '*';
+    }
+    firstName = firstName.replaceAll("\\s", "*");
+    query.setFirstName(firstName);
+
+    Set<Membership> ms = new HashSet<>();
+
+    for (String m : memberships) {
+      if (m == null || m.isEmpty()) {
+        continue;
+      }
+      int index = m.indexOf(':');
+
+      if (index == -1) {
+        User u = loadUser(m);
+        if (u != null && u.getDisplayName() != null && u.getDisplayName().toLowerCase().contains(keyword.toLowerCase())) {
+          users.add(u);
+        }
+      } else {
+        String membershipType = m.substring(0, index);
+        String groupId = m.substring(index + 1);
+
+        MembershipImpl membership = new MembershipImpl();
+        membership.setMembershipType(membershipType);
+        membership.setGroupId(groupId);
+
+        ms.add(membership);
+      }
+    }
+
+    if (ms.size() > 0) {
+      try {
+        final ListAccess<org.exoplatform.services.organization.User> orgUsers = orgService.getUserHandler().findUsersByQuery(query, UserStatus.ANY);
+        return new ListAccess<User>() {
+          @Override
+          public User[] load(int start, int size) throws Exception, IllegalArgumentException {
+            List<User> results = new ArrayList<>();
+            if (users.size() > start) {
+              for (int i = start; i < users.size(); i++) {
+                results.add(users.get(i));
+                if (results.size() >= size)
+                  break;
+              }
+              start = 0;
+            }
+
+            int remain = size - results.size();
+            if (remain > 0) {
+              for (org.exoplatform.services.organization.User u : orgUsers.load(start, remain)) {
+                results.add(loadUser(u.getUserName()));
+              }
+            }
+
+            return results.toArray(new User[results.size()]);
+          }
+
+          @Override
+          public int getSize() throws Exception {
+            return users.size() + orgUsers.getSize();
+          }
+        };
+      } catch (Exception ex) {
+        LOG.error("Error while searching user", ex);
+        return new ListAccessImpl<>(User.class, users);
+      }
+    } else {
+      return new ListAccessImpl<>(User.class, users);
+    }
+  }
+
+  private static final ListAccess<User> EMPTY = new ListAccess<User>() {
+    @Override
+    public User[] load(int i, int i1) throws Exception, IllegalArgumentException {
+      return new User[0];
+    }
+
+    @Override
+    public int getSize() throws Exception {
+      return 0;
+    }
+  };
 
   @Override
   @ExoTransactional
