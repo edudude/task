@@ -401,11 +401,11 @@ define('ta_edit_inline',
             closeAfterSelect: true,
             maxOptions: 10,
             plugins: {
-                remove_button: {
-                   label: '<i class="uiIconClose uiIconLightGray"></i>',
-                   className : 'removeValue'
-                }
-                // , no_results: {}
+                // task_remove_button: {
+                //     label: '<i class="uiIconClose uiIconLightGray"></i>',
+                //     className : 'removeValue'
+                // },
+                // no_results: {}
             },
             render: {
                 option: function(item, escape) {
@@ -608,15 +608,17 @@ define('ta_edit_inline',
                 onInitialize: function() {
                     onInit.apply(this, arguments);
                     if (assignee != '') {
-                        this.$input.closest('.inputUser').find('.selectize-input input').attr('disabled', 'disabled');
+                        this.disable();
+                        this.$input.closest('.inputUser').addClass('disabled');
                     }
                 },
                 onItemAdd: function(value, $item) {
-                    this.$input.closest('.inputUser').find('.selectize-input input').attr('disabled', 'disabled');
+                    this.disable();
+                    this.$input.closest('.inputUser').addClass('disabled');
                 },
                 onItemRemove: function(value, $item) {
                     this.enable();
-                    this.$input.closest('.inputUser').find('.selectize-input input').removeAttr('disabled');
+                    this.$input.closest('.inputUser').removeClass('disabled');
                     var _this = this;
                     setTimeout(function() {
                         _this.close();
