@@ -93,6 +93,7 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
     //
     if (comment != null && !comment.isEmpty()) {
       int idx = comment.indexOf(PREFIX);
+
       //
       if (idx >=0 && idx + 2 < comment.length() - 1) {
         comment = ActivityTaskProcessor.decode(comment);
@@ -100,16 +101,27 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
         String text = comment.substring(idx + 2);
         text = text.replaceFirst("<br(\\s*\\/?)>", "\n");
 
-        String title, description;
-        int index = text.indexOf("\n");
-        if (index > 1) {
-          title = text.substring(0, index);
-          description = text.substring(index).trim();
-        } else {
-          title = text.trim();
-          description = "";
+        StringBuilder taskTitle = new StringBuilder();
+        String  description = "";
+        boolean ignore = false;
+        // Extract task title from a String without any HTML formatting tag
+        for (int i = 0; i < text.length(); i++) {
+          char c = text.charAt(i);
+          if (ignore == true) {
+            if (c == '>') {
+              ignore = false;
+            }
+          } else if (c == '<') {
+            ignore = true;
+          } else if (c == '\n') {
+            description = text.substring(i);
+            break;
+          } else {
+            taskTitle.append(c);
+          }
         }
-        Task task = parser.parse(title, context);
+
+        Task task = parser.parse(taskTitle.toString(), context);
         //we need to remove malicious code here in case user inject request using curl TA-387
         task.setDescription(StringUtil.encodeInjectedHtmlTag(description));
         task.setContext(LinkProvider.getSingleActivityUrl(activity.getId()));

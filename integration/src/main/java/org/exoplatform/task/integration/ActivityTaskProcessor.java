@@ -95,11 +95,12 @@ public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
     if (idx == -1) {
       return title;
     }
-    int breakIdx = title.indexOf("<br", idx);
 
     StringBuilder builder = new StringBuilder(title);
     String taskURL = TaskUtil.buildTaskURL(task, SiteKey.portal("intranet"), ExoContainerContext.getCurrentContainer(), router);
     String url = " <a href='"+taskURL+"'>";
+
+    int breakIdx = title.indexOf("<br", idx);
     builder.insert(idx, url);
     if (breakIdx > 0) {
       breakIdx = breakIdx + url.length();
