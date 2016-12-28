@@ -99,9 +99,9 @@ public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
     StringBuilder builder = new StringBuilder(title);
     String taskURL = TaskUtil.buildTaskURL(task, SiteKey.portal("intranet"), ExoContainerContext.getCurrentContainer(), router);
     String url = " <a href='"+taskURL+"'>";
-
-    int breakIdx = title.indexOf("<br", idx);
     builder.insert(idx, url);
+
+    int breakIdx = title.indexOf("<", idx);
     if (breakIdx > 0) {
       breakIdx = breakIdx + url.length();
       builder.insert(breakIdx, "</a>");
