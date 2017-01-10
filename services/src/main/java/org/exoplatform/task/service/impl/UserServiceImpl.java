@@ -68,7 +68,8 @@ public class UserServiceImpl implements UserService {
 
   @Inject
   private DAOHandler daoHandler;
-  
+
+  @Inject
   private CalendarService calService;
 
   public UserServiceImpl(OrganizationService orgService, CalendarService calService, IdentityManager idMgr, DAOHandler handler) {
@@ -171,7 +172,11 @@ public class UserServiceImpl implements UserService {
 
       if (index == -1) {
         User u = loadUser(m);
-        if (u != null && u.getDisplayName() != null && u.getDisplayName().toLowerCase().contains(keyword.toLowerCase())) {
+        if (u != null && (
+                (u.getUsername() != null && u.getUsername().toLowerCase().contains(keyword.toLowerCase())
+                  || (u.getFirstName() != null && u.getFirstName().toLowerCase().contains(keyword.toLowerCase()))
+                  || (u.getLastName() != null && u.getLastName().toLowerCase().contains(keyword.toLowerCase()))
+                  || (u.getDisplayName() != null && u.getDisplayName().toLowerCase().contains(keyword.toLowerCase()))))) {
           users.add(u);
         }
       } else {
