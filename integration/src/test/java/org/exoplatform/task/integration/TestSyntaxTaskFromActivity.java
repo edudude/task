@@ -17,46 +17,53 @@
   
 package org.exoplatform.task.integration;
 
+import org.exoplatform.task.domain.Task;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.mockito.Mockito.mock;
 
 public class TestSyntaxTaskFromActivity {
 
   @Test
   public void testExtractTaskInfo() {
+    ActivityTaskCreationListener processor = new ActivityTaskCreationListener(null, null, null, null, null, null, null, null);
+
     String html = "we need to ++download new documentation from cloud<br>" +
         "It helps you understand better what's happening";
-    String[] taskInfo = ActivityTaskCreationListener.extractTaskInfo(html);
-    Assert.assertEquals("download new documentation from cloud", taskInfo[0]);
-    Assert.assertEquals("It helps you understand better what's happening", taskInfo[1]);
+    Task taskInfo = processor.extractTaskInfo(html);
+    Assert.assertEquals("download new documentation from cloud", taskInfo.getTitle());
+    Assert.assertEquals("It helps you understand better what's happening", taskInfo.getDescription());
 
     html = "we need to ++download new <strong>documentation from <i>cloud<br>" +
         "It helps you</i> understand</strong> better what's happening";
-    taskInfo = ActivityTaskCreationListener.extractTaskInfo(html);
-    Assert.assertEquals("download new documentation from cloud", taskInfo[0]);
-    Assert.assertEquals("It helps you</i> understand</strong> better what's happening", taskInfo[1]);
+    taskInfo = processor.extractTaskInfo(html);
+    Assert.assertEquals("download new documentation from cloud", taskInfo.getTitle());
+    Assert.assertEquals("It helps you</i> understand</strong> better what's happening", taskInfo.getDescription());
 
     html = "we need to ++download new <strong>documentation from cloud<br>" +
         "It helps you understand</strong> better what's happening";
-    taskInfo = ActivityTaskCreationListener.extractTaskInfo(html);
-    Assert.assertEquals("download new documentation from cloud", taskInfo[0]);
-    Assert.assertEquals("It helps you understand</strong> better what's happening", taskInfo[1]);
+    taskInfo = processor.extractTaskInfo(html);
+    Assert.assertEquals("download new documentation from cloud", taskInfo.getTitle());
+    Assert.assertEquals("It helps you understand</strong> better what's happening", taskInfo.getDescription());
   }
 
   @Test
   public void testSubstituteTask() {
+    ActivityTaskProcessor processor = new ActivityTaskProcessor(null, null, null, null);
     String taskURL = "/link/to/task";
 
     String html = "we need to ++download new documentation from cloud<br>" +
         "It helps you understand better what's happening";
     String expected = "we need to <a href=\"/link/to/task\">++download new documentation from cloud</a><br>" +
         "It helps you understand better what's happening";
-    Assert.assertEquals(expected, ActivityTaskProcessor.substituteTask(taskURL, html));
+    Assert.assertEquals(expected, processor.substituteTask(taskURL, html));
 
     html = "we need to ++download new <strong>documentation from cloud<br>" +
         "It helps you understand</strong> better what's happening";
     expected = "we need to <a href=\"/link/to/task\">++download new </a><strong>documentation from cloud<br>" +
         "It helps you understand</strong> better what's happening";
-    Assert.assertEquals(expected, ActivityTaskProcessor.substituteTask(taskURL, html));
+    Assert.assertEquals(expected, processor.substituteTask(taskURL, html));
   }
 }

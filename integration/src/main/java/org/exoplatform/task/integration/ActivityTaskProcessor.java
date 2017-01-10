@@ -28,7 +28,6 @@ import org.exoplatform.task.domain.Task;
 import org.exoplatform.task.service.TaskService;
 import org.exoplatform.task.util.TaskUtil;
 import org.exoplatform.web.WebAppController;
-import org.exoplatform.web.controller.router.Router;
 
 public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
 
@@ -87,7 +86,7 @@ public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
     return message;
   }
 
-  static String substituteTask(String taskURL, final String html) {
+  String substituteTask(String taskURL, final String html) {
     int idx = html.indexOf(ActivityTaskCreationListener.PREFIX);
     if (idx == -1) {
       return html;

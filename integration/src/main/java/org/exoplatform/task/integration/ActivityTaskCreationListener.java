@@ -40,8 +40,6 @@ import org.exoplatform.task.util.StringUtil;
 
 import java.util.List;
 
-import static org.jgroups.Version.description;
-
 public class ActivityTaskCreationListener extends ActivityListenerPlugin {
 
   private TaskService taskService;
@@ -88,24 +86,27 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
 
   private void createTask(ActivityLifeCycleEvent event, boolean isComment) {
     ExoSocialActivity activity = event.getActivity();
-    ExoSocialActivity rootActivity = isComment ? activityManager.getActivity(activity.getParentId()) : activity;
-    Identity identity = identityManager.getIdentity(activity.getPosterId(), false);    
-    ParserContext context = new ParserContext(userService.getUserTimezone(identity.getRemoteId()));
     String comment = activity.getTitle();
+
     //
     if (comment != null && !comment.isEmpty()) {
+
       int idx = comment.indexOf(PREFIX);
 
       //
       if (idx >=0 && idx + 2 < comment.length() - 1) {
+        ExoSocialActivity rootActivity = isComment ? activityManager.getActivity(activity.getParentId()) : activity;
+        Identity identity = identityManager.getIdentity(activity.getPosterId(), false);
+        ParserContext context = new ParserContext(userService.getUserTimezone(identity.getRemoteId()));
+
         comment = ActivityTaskProcessor.decode(comment);
         comment = StringEscapeUtils.unescapeHtml(comment);
 
-        String[] taskInfo = extractTaskInfo(comment);
+        Task taskInfo = extractTaskInfo(comment);
 
-        Task task = parser.parse(taskInfo[0].toString(), context);
+        Task task = parser.parse(taskInfo.getTitle(), context);
         //we need to remove malicious code here in case user inject request using curl TA-387
-        task.setDescription(StringUtil.encodeInjectedHtmlTag(taskInfo[1]));
+        task.setDescription(StringUtil.encodeInjectedHtmlTag(taskInfo.getDescription()));
         task.setContext(LinkProvider.getSingleActivityUrl(activity.getId()));
         task.setCreatedBy(identity.getRemoteId());
         task.setActivityId(activity.getId());
@@ -130,9 +131,9 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
   }
 
   // Extract task [title,description] from a string without any HTML formatting tag
-  static String[] extractTaskInfo(String comment) {
-    int idx = comment.indexOf(PREFIX);
-    String text = comment.substring(idx + 2);
+  Task extractTaskInfo(String html) {
+    int idx = html.indexOf(PREFIX);
+    String text = html.substring(idx + 2);
     text = text.replaceFirst("<br(\\s*\\/?)>", "\n");
 
     StringBuilder taskTitle = new StringBuilder();
@@ -154,6 +155,9 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
       }
     }
 
-    return new String[]{taskTitle.toString(), description};
+    Task task = new Task();
+    task.setTitle(taskTitle.toString());
+    task.setDescription(description);
+    return task;
   }
 }
