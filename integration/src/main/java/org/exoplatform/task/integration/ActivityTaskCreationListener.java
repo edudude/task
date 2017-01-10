@@ -40,6 +40,8 @@ import org.exoplatform.task.util.StringUtil;
 
 import java.util.List;
 
+import static org.jgroups.Version.description;
+
 public class ActivityTaskCreationListener extends ActivityListenerPlugin {
 
   private TaskService taskService;
@@ -98,37 +100,14 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
       if (idx >=0 && idx + 2 < comment.length() - 1) {
         comment = ActivityTaskProcessor.decode(comment);
         comment = StringEscapeUtils.unescapeHtml(comment);
-        String text = comment.substring(idx + 2);
-        text = text.replaceFirst("<br(\\s*\\/?)>", "\n");
 
-        StringBuilder taskTitle = new StringBuilder();
-        String  description = "";
-        boolean ignore = false;
-        // Extract task title from a String without any HTML formatting tag
-        for (int i = 0; i < text.length(); i++) {
-          char c = text.charAt(i);
-          if (ignore == true) {
-            if (c == '>') {
-              ignore = false;
-            }
-          } else if (c == '<') {
-            ignore = true;
-          } else if (c == '\n') {
-            description = text.substring(i);
-            break;
-          } else {
-            taskTitle.append(c);
-          }
-        }
+        String[] taskInfo = extractTaskInfo(comment);
 
-        Task task = parser.parse(taskTitle.toString(), context);
+        Task task = parser.parse(taskInfo[0].toString(), context);
         //we need to remove malicious code here in case user inject request using curl TA-387
-        task.setDescription(StringUtil.encodeInjectedHtmlTag(description));
+        task.setDescription(StringUtil.encodeInjectedHtmlTag(taskInfo[1]));
         task.setContext(LinkProvider.getSingleActivityUrl(activity.getId()));
-
-        
         task.setCreatedBy(identity.getRemoteId());
-
         task.setActivityId(activity.getId());
 
         // If task is created in space, it will belong to the top project
@@ -148,5 +127,33 @@ public class ActivityTaskCreationListener extends ActivityListenerPlugin {
         activityManager.updateActivity(activity);
       }
     }
+  }
+
+  // Extract task [title,description] from a string without any HTML formatting tag
+  static String[] extractTaskInfo(String comment) {
+    int idx = comment.indexOf(PREFIX);
+    String text = comment.substring(idx + 2);
+    text = text.replaceFirst("<br(\\s*\\/?)>", "\n");
+
+    StringBuilder taskTitle = new StringBuilder();
+    String  description = "";
+    boolean ignore = false;
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (ignore == true) {
+        if (c == '>') {
+          ignore = false;
+        }
+      } else if (c == '<') {
+        ignore = true;
+      } else if (c == '\n') {
+        description = text.substring(i).trim();
+        break;
+      } else {
+        taskTitle.append(c);
+      }
+    }
+
+    return new String[]{taskTitle.toString(), description};
   }
 }

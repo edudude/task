@@ -60,7 +60,8 @@ public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
         RequestLifeCycle.begin(entityManagerService);
         Task task = taskService.findTaskByActivityId(activity.getId());
         if (task != null) {
-          return substituteTask(task, message, webAppController.getRouter());
+          String taskURL = TaskUtil.buildTaskURL(task, SiteKey.portal("intranet"), ExoContainerContext.getCurrentContainer(), webAppController.getRouter());
+          return substituteTask(taskURL, message);
         } else {
           //encode to disable MentionsProcessor
           return encode(message);
@@ -86,22 +87,17 @@ public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
     return message;
   }
 
-  static String substituteTask(Task task, final String title, Router router) {
-    if (task == null || title == null) {
-      return title;
-    }
-
-    int idx = title.indexOf(ActivityTaskCreationListener.PREFIX);
+  static String substituteTask(String taskURL, final String html) {
+    int idx = html.indexOf(ActivityTaskCreationListener.PREFIX);
     if (idx == -1) {
-      return title;
+      return html;
     }
 
-    StringBuilder builder = new StringBuilder(title);
-    String taskURL = TaskUtil.buildTaskURL(task, SiteKey.portal("intranet"), ExoContainerContext.getCurrentContainer(), router);
-    String url = " <a href='"+taskURL+"'>";
+    StringBuilder builder = new StringBuilder(html);
+    String url = "<a href=\""+taskURL+"\">";
     builder.insert(idx, url);
 
-    int breakIdx = title.indexOf("<", idx);
+    int breakIdx = html.indexOf("<", idx);
     if (breakIdx > 0) {
       breakIdx = breakIdx + url.length();
       builder.insert(breakIdx, "</a>");
