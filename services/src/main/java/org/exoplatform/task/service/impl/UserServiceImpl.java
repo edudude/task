@@ -144,7 +144,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public ListAccess<User> findByMembership(Collection<String> memberships, String keyword) {
+  public ListAccess<User> searchUsersInMemberships(Collection<String> memberships, String keyword) {
     if (memberships == null || memberships.isEmpty() || keyword == null || keyword.isEmpty()) {
       return EMPTY;
     }

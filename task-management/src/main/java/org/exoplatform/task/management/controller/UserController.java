@@ -65,6 +65,114 @@ public class UserController extends AbstractController {
     private TaskService taskService;
 
 
+
+  /**
+   * This method is used to find user in assignement
+   * @param query
+   * @return
+   * @throws Exception
+   */
+  @Resource
+  @Ajax
+  @MimeType.JSON
+  public Response findUser(Long taskId, String query) throws EntityNotFoundException, JSONException {
+      Collection<User> users = searchUserByTask(taskId, query, UserUtil.SEARCH_LIMIT);
+      JSONArray array = new JSONArray();
+      for(User u : users) {
+        JSONObject json = new JSONObject();
+        json.put("id", u.getUsername());
+        json.put("text", u.getDisplayName());
+        json.put("avatar", u.getAvatar());
+        array.put(json);
+      }
+      return Response.ok(array.toString());
+    }
+
+  @Resource
+  @Ajax
+  @MimeType.JSON
+  public Response findUsersToMention(Long taskId, String query) throws EntityNotFoundException, JSONException {
+    Collection<User> users = searchUserByTask(taskId, query, UserUtil.SEARCH_LIMIT);
+    EntityEncoder encoder = HTMLEntityEncoder.getInstance();
+    JSONArray array = new JSONArray();
+    for(User u : users) {
+      JSONObject json = new JSONObject();
+      json.put("id", "@" + u.getUsername());
+      json.put("name", u.getDisplayName());
+      json.put("avatar", u.getAvatar());
+      json.put("type", "contact");
+      array.put(json);
+    }
+    return Response.ok(array.toString());
+  }
+
+  @Resource
+  @Ajax
+  @MimeType.JSON
+  public Response getDisplayNameOfUser(String usernames) throws JSONException {
+    if(usernames != null) {
+      JSONArray array = new JSONArray();
+      for(String username : usernames.split(",")) {
+        org.exoplatform.task.model.User user = userService.loadUser(username);
+        JSONObject json = new JSONObject();
+        json.put("id", user.getUsername());
+        json.put("text", user.getDisplayName());
+        json.put("avatar", user.getAvatar());
+        json.put("deleted", user.isDeleted());
+        json.put("enable", user.isEnable());
+        array.put(json);
+      }
+      return Response.ok(array.toString()).withCharset(Tools.UTF_8);
+
+    } else {
+      return Response.ok("[]");
+    }
+  }
+
+  @Resource
+  @Ajax
+  @MimeType("text/plain")
+  public Response showHiddenProject(Boolean show, SecurityContext securityContext) {
+      userService.showHiddenProject(securityContext.getRemoteUser(), show);
+      return Response.ok("Update successfully");
+  }
+
+  @Resource
+  @Ajax
+  @MimeType("text/plain")
+  public Response hideProject(Long projectId, Boolean hide) throws EntityNotFoundException, NotAllowedOperationOnEntityException, UnAuthorizedOperationException {
+    Identity identity = ConversationState.getCurrent().getIdentity();
+    try {
+      userService.hideProject(identity, projectId, hide);
+    } catch (NotAllowedOperationOnEntityException ex) {
+      throw new UnAuthorizedOperationException(projectId, Project.class, getNoPermissionMsg());
+    }
+    return Response.ok("Hide project successfully");
+  }
+
+  @Resource
+  @Ajax
+  @MimeType.JSON
+  public Response findLabel(SecurityContext securityContext) throws JSONException {
+    String username = securityContext.getRemoteUser();
+    ListAccess<Label> tmp = taskService.findLabelsByUser(username);
+    List<Label> labels = Arrays.asList(ListUtil.load(tmp, 0, -1));
+
+    JSONArray array = new JSONArray();
+    if (labels != null) {
+      for (Label label : labels) {
+        JSONObject json = new JSONObject();
+        json.put("id", label.getId());
+        json.put("text", label.getName());
+        json.put("name", label.getName());
+        json.put("color", label.getColor());
+
+        array.put(json);
+      }
+    }
+    return Response.ok(array.toString()).withCharset(Tools.UTF_8);
+  }
+
   private List<User> loadUserFromList(ListAccess<User> list, int limit, Map<String, User> loadedUsers) {
     int size;
     List<User> result = new LinkedList<>();
@@ -92,17 +200,14 @@ public class UserController extends AbstractController {
 
     Task task = taskService.getTask(taskId);
 
-    if (task.getStatus() == null) {
-      // Personal task: we only return creator if match with query
-      return loadUserFromList(userService.findByMembership(Arrays.asList(task.getCreatedBy()), query), 1, null);
+    if (task.getStatus() != null) {
+      // Project task
 
-    } else {
-      //
       Project project = task.getStatus().getProject();
       Map<String, User> map = new LinkedHashMap<>();
 
       // We search in participants first
-      ListAccess<User> participants = userService.findByMembership(project.getParticipator(), query);
+      ListAccess<User> participants = userService.searchUsersInMemberships(project.getParticipator(), query);
       try {
         int size = participants.getSize();
         if (size < limit)
@@ -111,7 +216,7 @@ public class UserController extends AbstractController {
           }
         // If not enough, continue search in project's manager
         if (map.size() < limit) {
-          ListAccess<User> managers = userService.findByMembership(project.getManager(), query);
+          ListAccess<User> managers = userService.searchUsersInMemberships(project.getManager(), query);
           for (User u : loadUserFromList(managers, limit - map.size(), map)) {
             map.put(u.getUsername(), u);
           }
@@ -120,115 +225,18 @@ public class UserController extends AbstractController {
         LOG.error("Exception when trying to retrieve the size of the participants list");
       }
       return map.values();
+    } else {
+      // Personal task
+
+      ListAccess<User> userListAccess = userService.findUserByName(query);
+      User[] users = new User[0];
+      try {
+        users = userListAccess.load(0, UserUtil.SEARCH_LIMIT);
+      } catch (Exception e) {
+        LOG.error("Cannot get all users for task " + taskId.longValue(), e);
+      }
+      return Arrays.asList(users);
     }
   }
 
-  /**
-   * This method is used to find user in assignement
-   * @param query
-   * @return
-   * @throws Exception
-   */
-
-
-    @Resource
-    @Ajax
-    @MimeType.JSON
-  public Response findUser(Long taskId, String query) throws EntityNotFoundException, JSONException {
-      Collection<User> users = searchUserByTask(taskId, query, UserUtil.SEARCH_LIMIT);
-      JSONArray array = new JSONArray();
-      for(User u : users) {
-        JSONObject json = new JSONObject();
-        json.put("id", u.getUsername());
-        json.put("text", u.getDisplayName());
-        json.put("avatar", u.getAvatar());
-        array.put(json);
-      }
-      return Response.ok(array.toString());
-    }
-
-    @Resource
-    @Ajax
-    @MimeType.JSON
-  public Response findUsersToMention(Long taskId, String query) throws EntityNotFoundException, JSONException {
-      Collection<User> users = searchUserByTask(taskId, query, UserUtil.SEARCH_LIMIT);
-      EntityEncoder encoder = HTMLEntityEncoder.getInstance();
-      JSONArray array = new JSONArray();
-      for(User u : users) {
-        JSONObject json = new JSONObject();
-        json.put("id", "@" + u.getUsername());
-        json.put("name", u.getDisplayName());
-        json.put("avatar", u.getAvatar());
-        json.put("type", "contact");
-        array.put(json);
-      }
-      return Response.ok(array.toString());
-    }
-
-    @Resource
-    @Ajax
-    @MimeType.JSON
-    public Response getDisplayNameOfUser(String usernames) throws JSONException {
-      if(usernames != null) {
-        JSONArray array = new JSONArray();
-        for(String username : usernames.split(",")) {
-          org.exoplatform.task.model.User user = userService.loadUser(username);
-          JSONObject json = new JSONObject();
-          json.put("id", user.getUsername());
-          json.put("text", user.getDisplayName());
-          json.put("avatar", user.getAvatar());
-          json.put("deleted", user.isDeleted());
-          json.put("enable", user.isEnable());
-          array.put(json);
-        }
-        return Response.ok(array.toString()).withCharset(Tools.UTF_8);
-
-      } else {
-        return Response.ok("[]");
-      }
-    }
-
-    @Resource
-    @Ajax
-    @MimeType("text/plain")
-    public Response showHiddenProject(Boolean show, SecurityContext securityContext) {
-        userService.showHiddenProject(securityContext.getRemoteUser(), show);
-        return Response.ok("Update successfully");
-    }
-
-    @Resource
-    @Ajax
-    @MimeType("text/plain")
-    public Response hideProject(Long projectId, Boolean hide) throws EntityNotFoundException, NotAllowedOperationOnEntityException, UnAuthorizedOperationException {
-      Identity identity = ConversationState.getCurrent().getIdentity();
-      try {
-        userService.hideProject(identity, projectId, hide);
-      } catch (NotAllowedOperationOnEntityException ex) {
-        throw new UnAuthorizedOperationException(projectId, Project.class, getNoPermissionMsg());
-      }
-      return Response.ok("Hide project successfully");
-    }
-
-    @Resource
-    @Ajax
-    @MimeType.JSON
-    public Response findLabel(SecurityContext securityContext) throws JSONException {
-      String username = securityContext.getRemoteUser();      
-      ListAccess<Label> tmp = taskService.findLabelsByUser(username);
-      List<Label> labels = Arrays.asList(ListUtil.load(tmp, 0, -1));
-
-      JSONArray array = new JSONArray();
-      if (labels != null) {
-        for (Label label : labels) {
-          JSONObject json = new JSONObject();
-          json.put("id", label.getId());
-          json.put("text", label.getName());
-          json.put("name", label.getName());
-          json.put("color", label.getColor());
-
-          array.put(json);
-        }
-      }
-      return Response.ok(array.toString()).withCharset(Tools.UTF_8);
-    }
 }

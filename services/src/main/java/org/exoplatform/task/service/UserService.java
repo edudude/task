@@ -44,7 +44,7 @@ public interface UserService {
    */
   ListAccess<User> findUserByName(String keyword);
 
-  ListAccess<User> findByMembership(Collection<String> memberships, String keyword);
+  ListAccess<User> searchUsersInMemberships(Collection<String> memberships, String keyword);
 
   UserSetting getUserSetting(String username);
 
