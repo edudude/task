@@ -21,6 +21,7 @@ import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.component.RequestLifeCycle;
 import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.social.core.BaseActivityProcessorPlugin;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
@@ -28,6 +29,7 @@ import org.exoplatform.task.domain.Task;
 import org.exoplatform.task.service.TaskService;
 import org.exoplatform.task.util.TaskUtil;
 import org.exoplatform.web.WebAppController;
+import org.exoplatform.web.application.RequestContext;
 
 public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
 
@@ -59,7 +61,13 @@ public class ActivityTaskProcessor extends BaseActivityProcessorPlugin {
         RequestLifeCycle.begin(entityManagerService);
         Task task = taskService.findTaskByActivityId(activity.getId());
         if (task != null) {
-          String taskURL = TaskUtil.buildTaskURL(task, SiteKey.portal("intranet"), ExoContainerContext.getCurrentContainer(), webAppController.getRouter());
+          RequestContext request = RequestContext.getCurrentInstance();
+          String portalName = "intranet";
+          if (request != null) {
+            PortalRequestContext pContext = (PortalRequestContext) RequestContext.getCurrentInstance().getParentAppRequestContext();
+            portalName = pContext.getPortalOwner();
+          }
+          String taskURL = TaskUtil.buildTaskURL(task, SiteKey.portal(portalName), ExoContainerContext.getCurrentContainer(), webAppController.getRouter());
           return substituteTask(taskURL, message);
         } else {
           //encode to disable MentionsProcessor
