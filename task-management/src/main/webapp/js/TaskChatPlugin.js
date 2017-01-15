@@ -6,17 +6,21 @@
       valueField: 'name',
       labelField: 'fullname',
       searchField: ['fullname'],
+      sortField: [{field: 'order', direction: 'asc'}, {field: 'fullname', direction: 'asc'}],
       sourceProviders: ['exo:task-add-user'],
       providers: {
         'exo:task-add-user': function(query, callback) {
           $.ajax({
             type: "GET",
-            url: chatApplication.jzUsers,
+            url: chatApplication.jzSuggestUsers,
             data: {
               filter : query,
               user : chatApplication.username,
-              token : chatApplication.token,
+              room: chatApplication.targetUser,
               dbName : chatApplication.dbName
+            },
+            headers: {
+              'Authorization': 'Bearer ' + chatApplication.token
             },
             complete: function(jqXHR) {
               if(jqXHR.readyState === 4) {
