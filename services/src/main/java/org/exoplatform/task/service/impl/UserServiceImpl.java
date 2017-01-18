@@ -209,8 +209,37 @@ public class UserServiceImpl implements UserService {
 
             int remain = size - results.size();
             if (remain > 0) {
-              for (org.exoplatform.services.organization.User u : orgUsers.load(start, remain)) {
-                results.add(loadUser(u.getUserName()));
+              // for each membership of the task project...
+              for(Membership membership : ms) {
+                // get all users in group
+                ListAccess<org.exoplatform.services.organization.User> usersInGroupListAccess = orgService.getUserHandler().findUsersByGroupId(membership.getGroupId());
+                org.exoplatform.services.organization.User[] usersInMembership = null;
+                // if membership type is *, load all the users of the group (limit to 'remain')
+                if(membership.getMembershipType().equals("*")) {
+                  usersInMembership = usersInGroupListAccess.load(0, remain < usersInGroupListAccess.getSize() ? remain : usersInGroupListAccess.getSize());
+                  for(org.exoplatform.services.organization.User user : usersInMembership) {
+                    results.add(loadUser(user.getUserName()));
+                  }
+                } else {
+                  // if membership type is not *, filter only users in the given membership type
+                  // OrganizationService does not provide a way to fetch all users in a given membership type, so
+                  // we must load memberships of each user and check if one of them matches
+                  org.exoplatform.services.organization.User[] usersInGroup = usersInGroupListAccess.load(0, usersInGroupListAccess.getSize());
+                  for(org.exoplatform.services.organization.User user : usersInGroup) {
+                    Collection<Membership> userMembershipsInGroup = orgService.getMembershipHandler().findMembershipsByUserAndGroup(user.getUserName(), membership.getGroupId());
+                    if(userMembershipsInGroup.stream().map(m -> m.getMembershipType())
+                            .anyMatch(membershipType -> "*".equals(membershipType) || membershipType.equals(membership.getMembershipType()))) {
+                      results.add(loadUser(user.getUserName()));
+                      if (results.size() >= size) {
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                if (results.size() >= size) {
+                  break;
+                }
               }
             }
 
